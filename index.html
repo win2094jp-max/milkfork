@@ -1026,7 +1026,7 @@
             recalculateTotalScore();
 
             // 4. Update Platforms & Check Landing Collisions (Only when falling vy > 0)
-            for (let i = platforms.length - 1; i >= 0; i--) {
+           for (let i = platforms.length - 1; i >= 0; i--) {
                 const p = platforms[i];
 
                 // Move horizontal platforms
@@ -1049,6 +1049,36 @@
                         frogRight >= p.x &&
                         frogLeft <= p.x + p.w &&
                         prevFrogBottom <= p.y + 10 &&
+                        frogBottom >= p.y - 4  // 補回漏掉的條件
+                    ) {
+                        // 補回漏掉的踏板反彈與道具邏輯
+                        frog.vy = frog.jumpForce;
+                        frog.y = p.y - frog.height;
+                        frog.squatTimer = 10;
+                        p.bounceAnim = 8;
+                        sfx.playJump();
+                        createJumpParticles(frog.x + frog.width / 2, frog.y + frog.height, '#F9D96C', 6);
+
+                        if (p.type === 'CRACKED') {
+                            p.broken = true;
+                            sfx.playCrack();
+                            createJumpParticles(p.x + p.w / 2, p.y + p.h / 2, '#9C633B', 12);
+                        }
+                        if (p.hasSpring) {
+                            frog.vy = frog.jumpForce * 1.55;
+                            frog.superBoostTimer = 40;
+                            sfx.playSuperSpring();
+                            createJumpParticles(p.x + p.w / 2, p.y, '#E83B68', 15);
+                        }
+                        if (p.hasShieldItem) {
+                            p.hasShieldItem = false;
+                            frog.hasShield = true;
+                            shieldIndicator.classList.remove('hidden');
+                            sfx.playShieldGet();
+                        }
+                    }
+                }
+            } // 補回關閉 platforms 迴圈的大括號
             // 5. Update Mosquitoes & Check Stomp / Hazard Collisions
             for (let i = mosquitoes.length - 1; i >= 0; i--) {
                 const m = mosquitoes[i];
